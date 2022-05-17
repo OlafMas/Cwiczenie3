@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from skimage.feature import greycomatrix, greycoprops
 import csv
-
+import pandas as pd
 
 
 patch_size = 128
@@ -45,11 +45,36 @@ for klasa in classes:
         header=['', '', 'category'] #wygenerowac cechy
         with open('output_data.csv','w',newline='')as out_csv:
              csvwriter=csv.writer(out_csv,delimiter='\t')
-             csvwriter.writerow(header)
+             # csvwriter.writerow(header)
              csvwriter.writerows(dataset)
 
 
+from sklearn import svm
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import plot_confusion_matrix
+
+from matplotlib import cm
 
 
+classifier=svm.SVC(gamma='auto')
+data = pd.read_csv('output_data.csv', header=None, sep='\t')
+data = np.array(data)
+X = data[:,:-1]
+Y = data[:,-1]
 
+x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.33)
 
+classifier.fit(x_train,y_train)
+y_pred = classifier.predict(x_test)
+acc = accuracy_score(y_test,y_pred)
+print(acc)
+
+cmat = confusion_matrix(y_test, y_pred, normalize='true')
+
+print(cmat)
+
+import matplotlib.pyplot as plt
+plot_confusion_matrix(classifier, x_test, y_test)
+plt.show()
